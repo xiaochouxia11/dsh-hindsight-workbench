@@ -21,3 +21,21 @@ test('setup view renders bound banks and states read-only boundaries', () => {
   assert.match(rendered, /自动采集仍由已安装的 Hindsight 集成负责/);
   assert.match(rendered, /只读/);
 });
+
+test('skills tab turns an unsupported-route error into a restart hint', () => {
+  const rendered = text(mountClient({ tab: 'skills', skills: { error: '不支持的只读操作' } }).render());
+  assert.match(rendered, /当前宿主还没有加载技能读取接口/);
+  assert.match(rendered, /重启 DSH/);
+  assert.doesNotMatch(rendered, /不支持的只读操作/);
+});
+
+test('skills tab lists local skills with their descriptions', () => {
+  const rendered = text(mountClient({
+    tab: 'skills',
+    skills: { value: { items: [{ id: 'demo', name: '演示技能', description: '一句话说明这个技能做什么' }], total: 1 } },
+  }).render());
+  assert.match(rendered, /演示技能/);
+  assert.match(rendered, /一句话说明这个技能做什么/);
+  assert.match(rendered, /DSH_HOME\/skills/);
+  assert.match(rendered, /不属于 Hindsight 记忆库/);
+});
