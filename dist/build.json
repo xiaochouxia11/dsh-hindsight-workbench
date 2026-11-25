@@ -1,0 +1,9 @@
+{
+  "format": 1,
+  "entries": [
+    "index.js",
+    "client.js"
+  ],
+  "dependencies": [],
+  "clientFormat": "DSH lazy factory"
+}
