@@ -25,7 +25,7 @@ window.__ModuleLoader__.load({
       scopeProject: '项目库', scopeGlobal: '全局库', scopeBoth: '联合搜索',
       tabFacts: '记忆', tabPages: '知识库', tabSkills: '技能', tabSetup: '检查',
       bankLabel: '记忆库', skillTag: 'Skill', skillsNote: '这些是本机 DSH 已安装的技能（来自 DSH_HOME/skills），不属于 Hindsight 记忆库，只读展示。',
-      emptySkills: '还没有可用的技能', skillsRestart: '技能清单由宿主读取文件系统。若刚更新插件，请重启 DSH 后再打开此页。', emptySkillsHint: '把带 SKILL.md 的技能目录放进 DSH_HOME/skills，刷新后即可在这里看到。',
+      emptySkills: '还没有可用的技能', skillsUnavailable: '当前宿主还没有加载技能读取接口。', skillsRestart: '技能清单由宿主读取文件系统。若刚更新插件，请重启 DSH 后再打开此页。', emptySkillsHint: '把带 SKILL.md 的技能目录放进 DSH_HOME/skills，刷新后即可在这里看到。',
       total: '事实', links: '关联', docs: '文档', pending: '待处理',
       all: '当前记忆库', items: '条', emptyTitle: '这里还是空的',
       emptyFacts: '没有匹配的记忆。换个关键词，或清空搜索再试。',
@@ -350,7 +350,12 @@ window.__ModuleLoader__.load({
 
           function skillsView() {
             if (skills.loading) return skeleton();
-            if (skills.error) return h(React.Fragment, null, notice(skills.error, 'error'), h('p', { className: 'skills-note' }, label('skillsRestart')));
+            if (skills.error) {
+              const stale = /不支持|unsupported/i.test(skills.error);
+              return h(React.Fragment, null,
+                notice(stale ? label('skillsUnavailable') : skills.error, 'error'),
+                h('p', { className: 'skills-note' }, label('skillsRestart')));
+            }
             const items = (skills.value && skills.value.items) || [];
             if (!items.length) return empty(label('emptySkills'), label('emptySkillsHint'));
             return h('div', { className: 'skills' },
