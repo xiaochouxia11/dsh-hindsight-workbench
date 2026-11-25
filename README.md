@@ -1,4 +1,4 @@
-# Hindsight 记忆工作台
+﻿# Hindsight 记忆工作台
 
 DeepSeek Harness（DSH）的简体中文只读记忆界面：在 DSH 左侧栏打开独立页面，查看本机 [Hindsight](https://github.com/vectorize-io/hindsight) 记忆库的连接状态、统计、记忆原文、关键词搜索、知识页与关联，以及本机已安装的 DSH 技能。
 
@@ -49,7 +49,7 @@ DeepSeek Harness（DSH）的简体中文只读记忆界面：在 DSH 左侧栏�
 
 ```sh
 npm run build   # 复制 src → dist
-npm test        # 33 项回归测试
+npm test        # 24 项回归测试
 npm run check:public-pack   # 公开包内容预检（需 npm）
 ```
 
