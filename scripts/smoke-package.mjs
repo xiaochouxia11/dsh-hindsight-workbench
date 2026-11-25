@@ -29,6 +29,15 @@ try {
   assert.deepEqual(await readdir(join(installed, 'dist')).then(files => files.sort()), ['build.json','client.js','index.js']);
   const guide = new TextDecoder('utf-8',{fatal:true}).decode(await readFile(join(installed, 'docs', 'INSTALL.zh-CN.md')));
   assert.match(guide, /首次安装/);
+  const patch = new TextDecoder('utf-8',{fatal:true}).decode(await readFile(join(installed, 'cordis.patch.yml')));
+  assert.match(patch, /"id"\s*:\s*"hindsight"/);
+  assert.match(patch, /hindsight-memory-host/);
+  const upstreamRoot = join(sandbox, 'node_modules', '@vectorize-io', 'hindsight-coding-agents');
+  const upstreamManifest = JSON.parse(await readFile(join(upstreamRoot, 'package.json'), 'utf8'));
+  assert.equal(upstreamManifest.version, '0.8.8');
+  assert.ok(upstreamManifest.exports?.['./dsh'], 'upstream must export the dsh entry point');
+  await readFile(join(upstreamRoot, 'dist', 'dsh.js'));
+  assert.equal(manifest.dependencies['@vectorize-io/hindsight-coding-agents'], '0.8.8');
   await writeFile(join(sandbox, 'check.mjs'), `
     import assert from 'node:assert/strict';
     const name = ${JSON.stringify(manifest.name)};
