@@ -85,13 +85,13 @@ window.__ModuleLoader__.load({
 .hbm .skills{display:flex;flex-direction:column;gap:12px;padding:4px 2px}
 .hbm .skills-note{margin:0;font-size:12px;line-height:1.7;color:var(--hbm-faint)}
 .hbm .skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-.hbm .skill-card{padding:14px 16px;border:1px solid var(--hbm-line);border-radius:13px;background:var(--hbm-card);display:flex;flex-direction:column;gap:8px;min-height:148px;transition:border-color .15s ease,box-shadow .15s ease}
+.hbm .skill-card{padding:14px 16px;border:1px solid var(--hbm-line);border-radius:13px;background:var(--hbm-card);display:flex;flex-direction:column;gap:8px;transition:border-color .15s ease,box-shadow .15s ease}
 .hbm .skill-card:hover{border-color:var(--hbm-accent);box-shadow:0 6px 22px -14px var(--hbm-accent)}
 .hbm .skill-card:hover .skill-top b{color:var(--hbm-accent)}
 .hbm .skill-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .hbm .skill-top b{font-size:13.5px;font-weight:650;line-height:1.45;word-break:break-word}
-.hbm .skill-card p{margin:0;font-size:12.5px;line-height:1.6;color:var(--hbm-muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:calc(1.6em * 2)}
-.hbm .skill-id{margin-top:auto;font-size:11px;color:var(--hbm-faint);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbm .skill-card p{margin:0;font-size:12.5px;line-height:1.6;color:var(--hbm-muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:calc(1.6em * 2);flex:none}
+.hbm .skill-id{flex:none;margin-top:auto;font-size:11px;color:var(--hbm-faint);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hbm .scopes{display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border:1px solid var(--hbm-line);border-radius:11px;background:var(--hbm-sunken)}
 .hbm .scopes button{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;color:var(--hbm-muted);transition:background .16s,color .16s,box-shadow .16s}
 .hbm .scopes button:hover{color:var(--hbm-text)}
