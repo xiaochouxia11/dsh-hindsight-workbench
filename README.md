@@ -18,8 +18,8 @@ DeepSeek Harness（DSH）的简体中文只读记忆界面：在 DSH 左侧栏�
 
 安装在 DSH 应用内完成，插件自带上游采集集成依赖 `@vectorize-io/hindsight-coding-agents@0.8.8`，**不需要另外安装采集器**：
 
-1. 打开 DSH 的插件管理 / 插件市场，搜索 `Hindsight 记忆工作台` 或 `dsh-hindsight-memory`，安装并启用；
-2. 或在插件管理里用 GitHub 源安装：`github:xiaochouxia11/dsh-hindsight-memory#v0.1.0`；
+1. 打开 DSH 的插件管理 / 插件市场，搜索 `Hindsight 记忆工作台` 或 `dsh-hindsight-workbench`，安装并启用；
+2. 或在插件管理里用 GitHub 源安装：`github:xiaochouxia11/dsh-hindsight-workbench#v0.1.0`；
 3. 安装后刷新页面或重开 DSH，左侧栏出现「Hindsight 记忆工作台」，也可以按 `Alt+Shift+H` 打开。
 
 工作台依赖本机已有 Hindsight 后端（默认 `http://127.0.0.1:9077`）。后端、Python/uv 运行环境、模型授权不属于本插件安装范围，请按 Hindsight 官方文档准备；后端不可用时页面会显示连接不可用，不会崩溃。

@@ -3,9 +3,9 @@ import { readdir, readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 
-export const name = 'dsh-hindsight-memory';
+export const name = 'dsh-hindsight-workbench';
 export const inject = ['connection'];
-export const ROUTE = '/api/hindsight-memory';
+export const ROUTE = '/api/hindsight-workbench';
 export const BANK = 'coding-agent::default';
 export const GLOBAL_BANK = 'coding-agent::global';
 export const BANKS_PATH = '/v1/default/banks';

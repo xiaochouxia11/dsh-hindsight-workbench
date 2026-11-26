@@ -31,7 +31,7 @@ try {
   assert.match(guide, /首次安装/);
   const patch = new TextDecoder('utf-8',{fatal:true}).decode(await readFile(join(installed, 'cordis.patch.yml')));
   assert.match(patch, /"id"\s*:\s*"hindsight"/);
-  assert.match(patch, /hindsight-memory-host/);
+  assert.match(patch, /hindsight-workbench-host/);
   const upstreamRoot = join(sandbox, 'node_modules', '@vectorize-io', 'hindsight-coding-agents');
   const upstreamManifest = JSON.parse(await readFile(join(upstreamRoot, 'package.json'), 'utf8'));
   assert.equal(upstreamManifest.version, '0.8.8');

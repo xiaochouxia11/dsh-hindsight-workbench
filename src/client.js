@@ -1,9 +1,9 @@
 window.__ModuleLoader__.load({
-  id: 'dsh-hindsight-memory',
+  id: 'dsh-hindsight-workbench',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
-    const PKG = 'dsh-hindsight-memory';
+    const PKG = 'dsh-hindsight-workbench';
     const ID = PKG + ':browser';
     const NS = ID;
 
@@ -209,7 +209,7 @@ window.__ModuleLoader__.load({
           if (connection.global) qs.set('global', connection.global);
           let res, data;
           try {
-            res = await fetch('/api/hindsight-memory?' + qs, { credentials: 'same-origin', signal, cache: 'no-store' });
+            res = await fetch('/api/hindsight-workbench?' + qs, { credentials: 'same-origin', signal, cache: 'no-store' });
             data = await res.json();
           } catch (error) {
             if (signal && signal.aborted) throw error;
