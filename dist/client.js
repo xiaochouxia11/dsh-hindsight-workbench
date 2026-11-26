@@ -25,6 +25,8 @@ window.__ModuleLoader__.load({
       scopeProject: '项目库', scopeGlobal: '全局库', scopeBoth: '联合搜索',
       tabFacts: '记忆', tabPages: '知识库', tabSkills: '技能', tabSetup: '检查',
       bankLabel: '记忆库', skillTag: 'Skill', skillsNote: '这些是本机 DSH 已安装的技能（来自 DSH_HOME/skills），不属于 Hindsight 记忆库，只读展示。',
+      bankOffline: '服务未就绪',
+      serviceHint: '本机 Hindsight 服务未运行或未响应。请先启动 hindsight-api（默认 127.0.0.1:9077），再点右上角「刷新」。',
       emptySkills: '还没有可用的技能', skillsUnavailable: '当前宿主还没有加载技能读取接口。', skillsRestart: '技能清单由宿主读取文件系统。若刚更新插件，请重启 DSH 后再打开此页。', emptySkillsHint: '把带 SKILL.md 的技能目录放进 DSH_HOME/skills，刷新后即可在这里看到。',
       total: '事实', links: '关联', docs: '文档', pending: '待处理',
       all: '当前记忆库', items: '条', emptyTitle: '这里还是空的',
@@ -83,12 +85,13 @@ window.__ModuleLoader__.load({
 .hbm .skills{display:flex;flex-direction:column;gap:12px;padding:4px 2px}
 .hbm .skills-note{margin:0;font-size:12px;line-height:1.7;color:var(--hbm-faint)}
 .hbm .skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-.hbm .skill-card{padding:14px 16px;border:1px solid var(--hbm-line);border-radius:13px;background:var(--hbm-card);display:flex;flex-direction:column;gap:8px;transition:border-color .15s ease,box-shadow .15s ease}
+.hbm .skill-card{padding:14px 16px;border:1px solid var(--hbm-line);border-radius:13px;background:var(--hbm-card);display:flex;flex-direction:column;gap:8px;min-height:148px;transition:border-color .15s ease,box-shadow .15s ease}
 .hbm .skill-card:hover{border-color:var(--hbm-accent);box-shadow:0 6px 22px -14px var(--hbm-accent)}
+.hbm .skill-card:hover .skill-top b{color:var(--hbm-accent)}
 .hbm .skill-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.hbm .skill-top b{font-size:13.5px;font-weight:650}
-.hbm .skill-card p{margin:0;font-size:12.5px;line-height:1.65;color:var(--hbm-muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.hbm .skill-id{font-size:11px;color:var(--hbm-faint);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbm .skill-top b{font-size:13.5px;font-weight:650;line-height:1.45;word-break:break-word}
+.hbm .skill-card p{margin:0;font-size:12.5px;line-height:1.6;color:var(--hbm-muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:calc(1.6em * 2)}
+.hbm .skill-id{margin-top:auto;font-size:11px;color:var(--hbm-faint);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hbm .scopes{display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border:1px solid var(--hbm-line);border-radius:11px;background:var(--hbm-sunken)}
 .hbm .scopes button{height:28px;padding:0 12px;border-radius:8px;font-size:12.5px;color:var(--hbm-muted);transition:background .16s,color .16s,box-shadow .16s}
 .hbm .scopes button:hover{color:var(--hbm-text)}
@@ -518,14 +521,14 @@ window.__ModuleLoader__.load({
                         setSelected(null); setDetail({}); setOffset(0); setRevision(x => x + 1);
                       },
                     }, (banks.length ? banks : [{ id: bankName }]).map(entry => h('option', { key: entry.id, value: entry.id }, entry.id))),
-                    h('span', { className: 'bank-count' }, banks.length > 1 ? banks.length + ' 个记忆库' : label('readOnly'))),
+                    h('span', { className: 'bank-count' }, banks.length ? (banks.length > 1 ? banks.length + ' 个记忆库' : label('readOnly')) : label('bankOffline'))),
                   h('div', { className: 'scopes', role: 'tablist' },
                     [['project', label('scopeProject')], ['global', label('scopeGlobal')], ['both', label('scopeBoth')]].map(([s, text]) =>
                       h('button', { key: s, type: 'button', 'aria-pressed': scope === s ? 'true' : 'false', onClick: () => { setScope(s); setOffset(0); if (s === 'both' && tab === 'pages') setTab('facts'); } }, text)))),
                 h('div', { className: 'metrics' },
                   [['total_nodes', label('total'), false], ['total_links', label('links'), false], ['total_documents', label('docs'), false], ['pending_operations', label('pending'), true]].map(([key, text, hot]) =>
                     h('div', { key, className: 'metric' + (hot && stats && stats[key] > 0 ? ' hot' : '') }, h('b', null, stats && stats[key] != null ? stats[key] : '—'), h('span', null, text))))),
-              overview.error ? notice(overview.error, 'error') : null,
+              overview.error ? h(React.Fragment, null, notice(overview.error, 'error'), h('p', { className: 'skills-note' }, label('serviceHint'))) : null,
               h('div', { className: 'toolbar' },
                 h('div', { className: 'tablist', role: 'tablist' },
                   [['facts', label('tabFacts')], ['pages', label('tabPages')], ['skills', label('tabSkills')], ['setup', label('tabSetup')]].map(([key, text]) =>
