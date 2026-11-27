@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
-import {targetFor,createHandler,connectionOptions,upstreamInventory,apply,ROUTE} from '../dist/index.js';
+import {targetFor,createHandler,connectionOptions,upstreamInventory,apply,ROUTE,KNOWLEDGE_ROUTE} from '../dist/index.js';
 const req=(q,method='GET')=>new Request('http://dsh.test'+ROUTE+'?'+q,{method});
 test('fixed GET allowlist rejects arbitrary operations and invalid inputs',()=>{
   assert.match(targetFor(new URLSearchParams('op=list&q=中文&offset=30')),/limit=30&offset=30&q=/);
@@ -24,9 +24,13 @@ test('disconnect, unsupported interface and UTF8 failure are separate',async()=>
   }
 });
 test('host route is owned by context effect and disposed',async()=>{
-  let removed=false;let route;let dispose;
-  apply({effect(fn){dispose=fn();},connection:{fetch:{register(r){route=r;return async()=>{removed=true;};}}}});
-  assert.equal(route.path,ROUTE);assert.deepEqual(route.methods,['GET']);await dispose();assert.ok(removed);
+  const routes = new Map();
+  const disposers = [];
+  apply({effect(fn){disposers.push(fn());},connection:{fetch:{register(route){routes.set(route.path, route);return () => routes.delete(route.path);}}}});
+  assert.deepEqual(routes.get(ROUTE).methods, ['GET']);
+  assert.deepEqual(routes.get(KNOWLEDGE_ROUTE).methods, ['GET','POST']);
+  for (const dispose of disposers) await dispose();
+  assert.equal(routes.size, 0);
 });
 test('client registers reversible sidebar and main page without touching unrelated panel',async()=>{
   let plugin;const registrations=[];const callbacks=[];const effects=[];let selected='other';

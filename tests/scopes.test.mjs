@@ -68,3 +68,41 @@ test('client single scope ignores forged item metadata on click', async () => {
   assert.equal(mounted.values[8].scope, scope === 'both' ? forged : scope);
  }
 });
+
+test('project picker excludes the configured global bank and its old selection cannot alias both scopes', async () => {
+  const paths = [];
+  const handler = createHandler(async pathname => {
+    if (pathname.startsWith('/v1/default/banks?')) {
+      return { banks: [{ bank_id: 'coding-agent::global' }, { bank_id: 'coding-agent::example' }] };
+    }
+    paths.push(pathname);
+    return { items: [{ id: 'sample' }], total: 1 };
+  });
+  const catalog = await (await handler(req('op=banks'))).json();
+  assert.deepEqual(catalog.data.banks.map(bank => bank.id), ['coding-agent::example']);
+  assert.equal(catalog.data.projectBank, 'coding-agent::default');
+
+  const search = await (await handler(req('op=list&scope=both&bank=coding-agent::global&global=coding-agent::example'))).json();
+  assert.deepEqual(search.data.items.map(item => [item._source.scope, item._source.bank]), [
+    ['project', 'coding-agent::default'],
+    ['global', 'coding-agent::global'],
+  ]);
+  assert.equal(new Set(paths).size, 2);
+});
+
+test('read-only memory history stays in the selected library and exposes only relevant fields',async()=>{
+ const calls=[];
+ const h=createHandler(async pathname=>{
+  calls.push(pathname);
+  if(pathname.includes('/documents/'))return {items:[{kind:'consolidation',created_at:'2026-11-28T00:00:00Z',
+    facts_added:2,observations_updated:{count:3},task_payload:'PRIVATE'}]};
+  return [{changed_at:'2026-11-28T00:00:00Z',previous_text:'旧结论',new_source_memory_ids:['evidence'],secret:'PRIVATE'}];
+ },config);
+ const observation=await(await h(req('op=observation-history&scope=global&id=old'))).json();
+ assert.deepEqual(observation.data.items,[{date:'2026-11-28T00:00:00Z',previousText:'旧结论',newSources:1}]);
+ const document=await(await h(req('op=document-history&scope=project&id=source'))).json();
+ assert.deepEqual(document.data.items,[{kind:'consolidation',date:'2026-11-28T00:00:00Z',factsAdded:2,factsRemoved:0,observationsChanged:3}]);
+ assert.deepEqual(calls,['/v1/default/banks/global%3A%3Aone/memories/old/history','/v1/default/banks/project%3A%3Aone/documents/source/history?limit=20']);
+ assert.equal((await h(req('op=document-history&scope=both&id=source'))).status,400);
+ assert.equal((await h(req('op=observation-history&id=..'))).status,400);
+});

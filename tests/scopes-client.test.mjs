@@ -39,3 +39,27 @@ test('skills tab lists local skills with their descriptions', () => {
   assert.match(rendered, /DSH_HOME\/skills/);
   assert.match(rendered, /不属于 Hindsight 记忆库/);
 });
+
+test('joint search shows both backend failures when there are no rows', () => {
+  const source = (scope, label) => ({ ok: false, source: { scope, label }, error: '读取失败' });
+  const mounted = mountClient({ scope: 'both', data: { value: {
+    items: [],
+    sources: [source('project', '当前项目库'), source('global', '全局库')],
+  } } });
+  const rendered = text(mounted.render());
+  assert.match(rendered, /当前项目库：读取失败/);
+  assert.match(rendered, /全局库：读取失败/);
+  assert.doesNotMatch(rendered, /这里还是空的/);
+});
+
+test('opening knowledge pages from joint search selects the project scope and closes the old detail', async () => {
+  const { walk } = await import('./harness.mjs');
+  const mounted = mountClient({ scope: 'both', offset: 30, selected: { id: 'old' },
+    detail: { value: { text: 'Prior view detail' } } });
+  const pages = walk(mounted.render()).find(node => node.props.role === 'tab' && node.children.includes('知识页'));
+  assert.ok(pages, 'expected knowledge tab');
+  pages.props.onClick();
+  assert.deepEqual(mounted.values.slice(0, 2), ['project', 'pages']);
+  assert.equal(mounted.values[4], 0);
+  assert.equal(mounted.values[8], null);
+});

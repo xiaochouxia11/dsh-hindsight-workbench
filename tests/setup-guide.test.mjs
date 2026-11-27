@@ -24,7 +24,7 @@ test('first-run guide stays visible even when diagnostics fail', () => {
 
 test('healthy backend never implies model auth or dual-scope acceptance', () => {
   const rendered = setup({ value: ready });
-  assert.match(rendered, /健康（healthy）/);
+  assert.match(rendered, /健康/);
   assert.match(rendered, /已安装：是/);
   assert.match(rendered, /版本：0\.8\.8/);
   assert.match(rendered, /已存在 · 0 条事实/);
@@ -33,6 +33,6 @@ test('healthy backend never implies model auth or dual-scope acceptance', () => 
 
 test('unknown service and duplicate collection both receive actionable status', () => {
   const rendered = setup({ value: { ...ready, health: { ok: true, status: 'unknown' }, upstream: { ...ready.upstream, duplicate: true, entries: [{}, {}] } } });
-  assert.match(rendered, /健康（unknown）/);
+  assert.match(rendered, /已响应，健康状态未知/);
   assert.match(rendered, /多个上游挂载/);
 });

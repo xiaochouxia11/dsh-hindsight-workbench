@@ -48,9 +48,9 @@ try {
     const {readFile} = await import('node:fs/promises');
     assert.match(new TextDecoder('utf-8',{fatal:true}).decode(await readFile(guide)), /发布门/);
     const registry = new Map([['/unrelated', {name:'unrelated fixture'}]]);
-    let dispose;
+    const disposers = [];
     api.apply({
-      effect(fn) { dispose = fn(); },
+      effect(fn) { disposers.push(fn()); },
       connection:{fetch:{register(route) {
         assert.ok(!registry.has(route.path));
         registry.set(route.path,route);
@@ -58,7 +58,8 @@ try {
       }}},
     }, {bank:'synthetic-project', globalBank:'synthetic-global'});
     assert.deepEqual(registry.get(api.ROUTE)?.methods,['GET']);
-    await dispose();
+    assert.deepEqual(registry.get(api.KNOWLEDGE_ROUTE)?.methods,['GET','POST']);
+    for(const stop of disposers) await stop();
     assert.deepEqual([...registry.keys()],['/unrelated']);
     const response = await api.createHandler(async () => {throw new Error('offline smoke');})(new Request('http://dsh.test' + api.ROUTE + '?op=stats'));
     assert.equal(response.status, 503);
