@@ -1,0 +1,31 @@
+name: Clean Harness installation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock @deepseek-ai/dsh@0.2.2-rc.5
+      - run: npm run build
+      - run: npm test
+      - run: npm run check:public-pack
+      - run: npm run verify:harness -- node_modules/@deepseek-ai/dsh/lib/bin.js
