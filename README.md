@@ -1,8 +1,24 @@
 # Hindsight 记忆工作台
 
-DeepSeek Harness（DSH）的简体中文记忆工作台：在 DSH 左侧栏打开独立页面，查看本机 [Hindsight](https://github.com/vectorize-io/hindsight) 记忆库的连接状态、统计、记忆原文、关键词搜索、知识页与关联，以及本机已安装的 DSH 技能。
+为 DeepSeek Harness 提供跨会话长期记忆、任务复盘和 Skill 草稿的简体中文工作台。把明确的项目约定和偏好留给下次使用，让反复验证过的做法有据可查。
 
-工作台可以浏览 Hindsight 长期事实，也可以在本机保存偏好、项目事实与经验。AI 知识库使用 Hindsight 原生接口，添加 Skill 由 DSH 技能管理器完成。
+[插件市场条目](https://awesome-dsh-plugin.com/p/xiaochouxia11/dsh-hindsight-workbench/) · [正式版下载](https://github.com/xiaochouxia11/dsh-hindsight-workbench/releases/latest) · [安装与换机指南](docs/INSTALL.zh-CN.md)
+
+## 第一次使用
+
+1. 打开 DeepSeek Harness 的「插件市场」，搜索 `dsh-hindsight-workbench` 并安装。重开 Harness 后打开左侧「Hindsight 记忆工作台」。
+2. 在项目会话中试一句「以后验收格式：清单」。回合结束后，到「进化」选中该项目库，查看新记录。换一个同项目会话谈到验收格式时，可以按相关性取回这条约定。
+3. 到「长期记忆」手动保存一条偏好或经验。若要使用语义召回和 AI 知识库，到「检查」确认本机 Hindsight 后端已连接。
+
+## 数据与依赖
+
+| 功能 | 使用条件 |
+| --- | --- |
+| 本机长期笔记、选择性学习和进化日志 | 兼容版本的 Harness。自动采集需要有效的项目工作目录 |
+| Hindsight 记忆浏览、语义召回、AI 知识库 | 本机 Hindsight 后端。AI 知识库需可用的文档索引和检索接口 |
+| 把 Skill 草稿正式安装 | 已启用 `@michengai/dsh-skills-manager`，由用户确认保存 |
+
+项目与全局记忆分开。自动规则可归档和恢复，默认使用本机选择性写入。换机安装和迁移旧记忆是两个步骤，迁移时参照安装指南。Windows x64、macOS ARM64 和 Linux x64 已通过 [官方 Harness CLI 跨平台验收](https://github.com/xiaochouxia11/dsh-hindsight-workbench/actions/workflows/clean-harness.yml)。
 
 ## 功能
 
