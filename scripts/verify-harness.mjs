@@ -52,7 +52,7 @@ async function openHost() {
   host.stderr.on('data', chunk => { startupLog = (startupLog + chunk).slice(-20000); });
   const deadline = Date.now() + 45_000;
   while (Date.now() < deadline && host.exitCode === null) {
-    const address = startupLog.match(/dsh web:s+(http:\/\/127\.0\.0\.1:\d+\/\?token=[^\s]+)/)?.[1];
+    const address = startupLog.match(/dsh web:\s+(http:\/\/127\.0\.0\.1:\d+\/\?token=[^\s]+)/)?.[1];
     if (address) {
       const link = new URL(address);
       const login = await fetch(link, { redirect: 'manual', signal: AbortSignal.timeout(5000) });

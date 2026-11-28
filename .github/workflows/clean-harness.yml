@@ -24,7 +24,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npm install --no-save --no-package-lock @deepseek-ai/dsh@0.2.2-rc.5
+      - run: npm install --no-save --no-package-lock @deepseek-ai/dsh@0.2.2-rc.5 pnpm@11.28.5
       - run: npm run build
       - run: npm test
       - run: npm run check:public-pack
