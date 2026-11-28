@@ -5,11 +5,11 @@
 桌面用户可直接从插件管理器安装，依赖由 Harness 管理。使用官方命令行的用户先确认 `node --version` 和 `pnpm --version` 可执行，再运行下列命令。对已验证的 Harness CLI 0.2.2-rc.5，Node.js 需达到 24.9.0，测试使用 Node 24 和 pnpm 11.28.5。
 
 ```sh
-dsh plugin --profile web add github:xiaochouxia11/dsh-hindsight-workbench#v0.3.0
+dsh plugin --profile web add github:xiaochouxia11/dsh-hindsight-workbench#v0.3.1
 dsh --profile web
 ```
 
-官方 CLI 安装与宿主挂载由 [跨平台验收](https://github.com/xiaochouxia11/dsh-hindsight-workbench/actions/workflows/clean-harness.yml) 检查。每个平台的结果以当次运行记录为准。此验收包含本机笔记保存和重启恢复，AI 知识库和 Skill 创建仍需在目标电脑配置相应组件。
+官方 CLI 安装与宿主挂载由 [跨平台验收](https://github.com/xiaochouxia11/dsh-hindsight-workbench/actions/workflows/clean-harness.yml) 检查。每个平台的结果以当次运行记录为准。此验收包含本机笔记保存和重启恢复，以及把本机笔记、项目规则与 Skill 草稿迁入独立 Harness 配置，AI 知识库和 Skill 创建仍需在目标电脑配置相应组件。
 
 1. 打开本机 DeepSeek Harness 的「插件」页面。兼容版本由插件的 `engines.dsh` 声明，安装时由 Harness 校验。
 2. 在已配置的市场中搜索「Hindsight 记忆工作台」或 `dsh-hindsight-workbench`。能否搜到取决于市场是否已收录和刷新。也可从仓库的 GitHub Releases 下载对应版本的 `.tgz`，再从 Harness 插件管理器安装该包。两个入口都应核对安装来源和版本。

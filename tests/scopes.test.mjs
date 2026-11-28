@@ -34,7 +34,7 @@ test('client bundle renders the setup view without activation IO', async () => {
  const dist = await readFile('dist/client.js','utf8');
  assert.match(dist, /安装与连接检查/);
  assert.match(dist, /项目库是显式绑定的配置/);
- assert.match(dist, /自动采集仍由已安装的 Hindsight 集成负责/);
+ assert.match(dist, /本机自动记忆按会话所在项目采集/);
 });
 
 test('host overwrites forged source for every list scope',async()=>{

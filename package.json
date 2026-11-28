@@ -1,6 +1,6 @@
 {
   "name": "dsh-hindsight-workbench",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "Hindsight 记忆工作台：浏览本机 Hindsight 记忆、管理 AI 知识库和添加 Skill",
   "license": "MIT",

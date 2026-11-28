@@ -1042,9 +1042,9 @@ window.__ModuleLoader__.load({
               h('h3', null, label('guide')),
               h('ol', null, SETUP_STEPS.map((step, i) => h('li', { key: i, style: { margin: '6px 0' } }, step))),
               h('h3', null, label('boundary')),
-              h('p', null, '工作台支持按库浏览与标明来源的联合搜索，不代表上游已实现双库自动召回注入；自动采集仍由已安装的 Hindsight 集成负责，本插件不重复采集。'),
+              h('p', null, '工作台可分库浏览，也可联合搜索并显示每条结果的来源。本机自动记忆按会话所在项目采集，召回时会按相关性选择项目和全局规则。Hindsight 后端自动召回由采集器配置控制。'),
               h('h3', null, label('encoding')),
-              h('p', null, '响应按严格 UTF-8 解码；疑似乱码只提示，不自动转码、不改写原文。本版本只读。'));
+              h('p', null, '记忆详情、历史和关系只供查阅。长期笔记、知识库导入和 Skill 创建各有独立的保存或确认入口。发现疑似乱码时保留原始内容并提示。'));
           }
 
           const shown = tab === 'facts' && scope === 'both'

@@ -18,7 +18,7 @@ test('setup view renders bound banks and states read-only boundaries', () => {
   assert.match(rendered, /已绑定项目库/);
   assert.match(rendered, /已存在 · 12 条事实/);
   assert.match(rendered, /项目库是显式绑定的配置/);
-  assert.match(rendered, /自动采集仍由已安装的 Hindsight 集成负责/);
+  assert.match(rendered, /本机自动记忆按会话所在项目采集/);
   assert.match(rendered, /只读/);
 });
 

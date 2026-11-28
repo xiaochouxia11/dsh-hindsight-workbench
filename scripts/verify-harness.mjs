@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const launcher = path.resolve(process.argv[2]);
@@ -89,11 +90,28 @@ try {
   const notesRoute = '/notes?scope=global';
   const initial = await first(notesRoute);
   assert.deepEqual(initial.items, []);
-  await first(notesRoute, {
+  const post = (host, route, body) => host(route, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-hindsight-workbench': '1', 'sec-fetch-site': 'same-origin' },
-    body: JSON.stringify({ action: 'save', revision: initial.revision, id: null, type: 'preference', title: '换机验收', content: '保留中文长期笔记' }),
+    body: JSON.stringify(body),
   });
+  await post(first, notesRoute, { action: 'save', revision: initial.revision, id: null, type: 'preference',
+    title: '换机验收', content: '保留中文长期笔记' });
+  const bank = 'coding-agent::migration-fixture';
+  const learningRoute = '/learning?scope=project&bank=' + encodeURIComponent(bank);
+  const sourceStorage = path.join(appHome, 'storages', 'dsh-hindsight-workbench');
+  const { recordLearning } = await import(pathToFileURL(path.join(installed, 'dist', 'learning.js')));
+  await recordLearning({
+    directory: path.join(sourceStorage, 'learning'), session: 'migration-fixture', bank,
+    events: [{ type: 'user/message', data: { source: { kind: 'user' },
+      content: [{ type: 'text', text: '以后验收格式：项目清单' }] } }],
+  });
+  const expectedLearning = await first(learningRoute);
+  assert.equal(expectedLearning.entries[0].status, 'durable');
+  const draft = { evidence: { id: 'migration-fixture', scopeLabel: '项目', text: '验收证据' },
+    name: 'migration-fixture', description: '验收说明', body: '## 验收步骤', includeEvidence: true };
+  const initialDraft = await first('/evolution');
+  await post(first, '/evolution', { revision: initialDraft.revision, draft });
   assert.deepEqual(await first('/learning?scope=global'), { entries: [], reviews: [] });
   await stop();
 
@@ -101,7 +119,21 @@ try {
   const restored = await reopened(notesRoute);
   assert.equal(restored.items.length, 1);
   assert.equal(restored.items[0].content, '保留中文长期笔记');
-  console.log('Verified on ' + process.platform + ' ' + process.arch + ': official clean install, single collector, and offline Unicode notes after restart.');
+  await stop();
+
+  const target = path.join(root, '新电脑 工作区');
+  await mkdir(target);
+  env.DSH_HOME = target;
+  dsh(['plugin', '--profile', 'web', 'add', path.join(root, archive.filename), '--registry=https://registry.npmjs.org']);
+  const targetStorage = path.join(target, 'storages', 'dsh-hindsight-workbench');
+  await mkdir(path.dirname(targetStorage));
+  await cp(sourceStorage, targetStorage, { recursive: true, force: false, errorOnExist: true });
+  const migrated = await openHost();
+  assert.deepEqual(await migrated(notesRoute), restored);
+  assert.deepEqual(await migrated(learningRoute), expectedLearning);
+  assert.deepEqual((await migrated('/evolution')).draft, draft);
+  console.log('Verified on ' + process.platform + ' ' + process.arch +
+    ': clean install, single collector, offline restart, and transfer of notes, project rules and Skill drafts to a separate Harness profile.');
 } finally {
   await stop();
   assert.equal(path.dirname(root), temp);
