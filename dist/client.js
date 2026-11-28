@@ -353,12 +353,64 @@ window.__ModuleLoader__.load({
             operationStatus(status));
         }
 
-        function EvolutionWorkspace({ evidence, onDiscard, onCreated }) {
+        function LearningJournal({ bank, scope, onDraft, canDraft }) {
+          const [data, setData] = React.useState(null);
+          const [status, setStatus] = React.useState({ busy: true });
+          const [showArchived, setShowArchived] = React.useState(false);
+          const route = '/api/hindsight-workbench/learning?' + new URLSearchParams({ scope, bank });
+          React.useEffect(() => {
+            const controller = new AbortController();
+            companionRequest(route, undefined, controller.signal).then(value => {
+              if (!controller.signal.aborted) { setData(value); setStatus({}); }
+            }, error => { if (!controller.signal.aborted) setStatus({ error: error.message }); });
+            return () => controller.abort();
+          }, [route]);
+
+          async function archive(item) {
+            setStatus({ busy: true });
+            try { setData(await companionRequest(route, { id: item.id, action: item.archived ? 'restore' : 'archive' })); setStatus({}); }
+            catch (error) { setStatus({ error: error.message }); }
+          }
+
+          const kinds = { correction: '纠正', preference: '偏好', instruction: '重复指令', workflow: '验证流程' };
+          const states = { durable: '已记住', candidate: '待积累', ready: '可提炼', adopted: '已采用' };
+          const steps = { inspect: '检查现有状态', edit: '实施修改', build: '构建', test: '运行测试', check: '运行静态检查' };
+          const entries = data?.entries.filter(item => !!item.archived === showArchived) || [];
+          return h('div', { className: 'box' }, h('h3', null, scope === 'global' ? '全局自动记忆' : '项目进化日志'),
+            operationStatus(status),
+            h('label', { className: 'check-option' }, h('input', { type: 'checkbox', checked: showArchived,
+              onChange: event => setShowArchived(event.target.checked) }), '查看归档'),
+            ...(entries.length ? entries.map(item => h('article', { className: 'box', key: item.id },
+              h('p', null, kinds[item.kind] + ' · ' + states[item.status] + ' · ' + item.sources.length + ' 个会话'),
+              h('p', { className: 'prose' }, item.text),
+              item.previous ? h('p', { className: 'skills-note' }, '旧记录 · ' + item.previous) : null,
+              h('details', null, h('summary', null, '查看证据'),
+                ...item.sources.map(source => h('p', { key: source.id }, source.date.slice(0, 10) + ' · ' + source.id))),
+              canDraft && !item.archived && item.status === 'ready' ? h('button', { type: 'button', className: 'btn',
+                onClick: () => onDraft({
+                  evidence: { id: item.id, scopeLabel: ('项目流程 · ' + bank).slice(0, 64), learningBank: bank,
+                    text: item.text + '。独立验证：' + item.sources.map(source => source.id).join('、') },
+                  name: 'workflow-' + item.id.slice(0, 10),
+                  description: item.text,
+                  body: '## 操作步骤\n\n' + item.steps.map((step, i) => (i + 1) + '. ' + steps[step]).join('\n'),
+                  includeEvidence: true,
+                }) }, '打开 Skill 草稿') : null,
+              h('button', { type: 'button', className: 'btn', disabled: !!status.busy, onClick: () => archive(item) },
+                item.archived ? '恢复' : '归档'))) : [data ? h('p', { key: 'empty' }, '暂无记录。') : null]),
+            scope === 'project' && data?.reviews.length ? h('details', null, h('summary', null, '任务复盘'),
+              ...data.reviews.map(review => h('p', { key: review.id }, review.date.slice(0, 10) + ' · ' +
+                review.steps.map(step => steps[step]).join(' → ') + ' · ' +
+                (review.verified ? '有验证通过记录' : '缺少完整验证') +
+                (review.failed ? ' · ' + review.failed + ' 步失败，检查失败步骤后重新验证' : '')))) : null);
+        }
+
+        function EvolutionWorkspace({ evidence, bank, scope, onDiscard, onCreated }) {
           const route = '/api/hindsight-workbench/evolution';
           const [stored, setStored] = React.useState(null);
           const [status, setStatus] = React.useState({ busy: true });
           const [restored, setRestored] = React.useState(null);
           const [savedHere, setSavedHere] = React.useState(null);
+          const [candidate, setCandidate] = React.useState(null);
           React.useEffect(() => {
             const controller = new AbortController();
             companionRequest(route, undefined, controller.signal).then(data => {
@@ -366,7 +418,7 @@ window.__ModuleLoader__.load({
             }, error => { if (!controller.signal.aborted) setStatus({ error: error.message }); });
             return () => controller.abort();
           }, []);
-          const active = evidence || restored?.evidence;
+          const active = evidence || restored?.evidence || candidate?.evidence;
 
           async function write(draft) {
             if (!stored) throw new Error('尚未读取本机草稿。');
@@ -381,6 +433,17 @@ window.__ModuleLoader__.load({
           }
 
           async function adopted() {
+            if (active?.learningBank) {
+              try {
+                const route = '/api/hindsight-workbench/learning?' + new URLSearchParams({
+                  scope: 'project', bank: active.learningBank,
+                });
+                await companionRequest(route, { id: active.id, action: 'adopt' });
+              } catch (error) {
+                setStatus({ error: 'Skill 已添加，候选采用状态未更新。' + error.message });
+                return;
+              }
+            }
             if (stored?.draft && (restored || savedHere === active)) {
               try { await write(null); }
               catch (error) {
@@ -397,6 +460,7 @@ window.__ModuleLoader__.load({
           }
 
           return h('div', { className: 'workbench-editor' }, h('h2', null, '进化'),
+            scope === 'both' ? h('p', { className: 'skills-note' }, '请选择项目库或全局库，查看自动记忆与复盘。') : null,
             operationStatus(status),
             stored?.draft ? h('div', { className: 'box' },
               h('p', null, '本机已保存草稿 · ' + (stored.draft.name || stored.draft.evidence.id)),
@@ -404,8 +468,9 @@ window.__ModuleLoader__.load({
                 onClick: () => setRestored(stored.draft) }, '继续编辑已保存草稿'),
               h('button', { type: 'button', className: 'btn', disabled: !!active || !!status.busy,
                 onClick: clear }, '清除已保存草稿')) : null,
-            active ? h(SkillCreator, { key: active.id, evidence: active, saved: evidence ? null : restored,
-              onDiscard: () => { setRestored(null); setSavedHere(null); onDiscard(); }, onCreated: adopted,
+            bank && scope !== 'both' ? h(LearningJournal, { key: scope + bank, bank, scope, onDraft: setCandidate, canDraft: !active }) : null,
+            active ? h(SkillCreator, { key: active.id, evidence: active, saved: evidence ? null : restored || candidate,
+              onDiscard: () => { setRestored(null); setCandidate(null); setSavedHere(null); onDiscard(); }, onCreated: adopted,
               onSaveDraft: stored && (!stored.draft || restored || savedHere === active) ? saveDraft : null })
               : h('p', { className: 'skills-note' }, '打开一条记忆，选择「提炼为 Skill 草稿」。确认来源后，填写可复用的步骤并保存。'));
         }
@@ -713,9 +778,18 @@ window.__ModuleLoader__.load({
           React.useEffect(() => () => graphController.current && graphController.current.abort(), []);
           React.useEffect(() => {
             const ac = new AbortController();
-            api('banks', {}, ac.signal).then(value => {
+            Promise.allSettled([
+              api('banks', {}, ac.signal),
+              companionRequest('/api/hindsight-workbench/learning?scope=banks', undefined, ac.signal),
+            ]).then(([remote, local]) => {
               if (ac.signal.aborted) return;
-              const list = (value && value.banks) || [];
+              const value = remote.value || local.value;
+              if (!value) return;
+              const list = [...(remote.value?.banks || [])];
+              for (const id of local.value?.banks || []) {
+                if (!list.some(entry => entry.id === id)) list.push({ id });
+              }
+              if (value.projectBank && !list.some(entry => entry.id === value.projectBank)) list.push({ id: value.projectBank });
               setBanks(list);
               let stored = '';
               try { stored = localStorage.getItem('hbm.bank') || ''; } catch { stored = ''; }
@@ -1036,7 +1110,7 @@ window.__ModuleLoader__.load({
                     scope === 'both' ? h('p', { className: 'skills-note' }, '请选择项目库或全局库，查看对应的长期记忆。')
                       : h(LongTermNotes, { key: scope + ':' + bank, bank, scope }))))
                 : tab === 'evolution' ? h('div', { className: 'content' }, h('div', { className: 'detail-pane', style: { width: '100%' } }, h('div', { className: 'detail-scroll' },
-                    h(EvolutionWorkspace, { evidence: evolution, onDiscard: () => setEvolution(null),
+                    h(EvolutionWorkspace, { key: scope + bank, evidence: evolution, bank, scope, onDiscard: () => setEvolution(null),
                       onCreated: () => { setEvolution(null); setTab('skills'); refresh(); } }))))
                 : h('div', { className: 'content' + (selected ? ' show-detail' : '') },
                     h('aside', { className: 'list-pane', 'aria-busy': !!data.loading },

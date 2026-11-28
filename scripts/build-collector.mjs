@@ -24,6 +24,7 @@ export async function buildCollector() {
     'import { createHash as workbenchHash } from "node:crypto";',
     'import { realpathSync as workbenchRealpath, statSync as workbenchStat } from "node:fs";',
     'import { isAbsolute as workbenchAbsolute } from "node:path";',
+    'import { recordLearning, recallLearning } from "./learning.js";',
     'const upstreamAdapterUrl = import.meta.resolve(' + JSON.stringify(adapter) + ');',
   ].join('\n');
   source = replaceOnce(source,
@@ -68,5 +69,27 @@ function workspaceRoot(agent) {
   source = replaceOnce(source,
     'const workspace = exec?.agent ? workspaceForAgent(exec.agent) : template;',
     'const workspace = exec?.agent ? workspaceForAgent(exec.agent) : undefined;');
+  source = replaceOnce(source,
+    '    if (!this.writeBackEnabled) return;\n    const st = this.stateFor(sessionId);\n    if (turns.length <= st.retainedTurns)',
+    '    if (!this.writeBackEnabled || (this.harness === "dsh" && process.env.DSH_HINDSIGHT_RETAIN_TRANSCRIPTS !== "1")) return;\n    const st = this.stateFor(sessionId);\n    if (turns.length <= st.retainedTurns)');
+  source = replaceOnce(source,
+    '      const injection = workspace.core.getInjection(sessionId);',
+    `      const selected = await recallLearning({ bank: workspace.core.bankId, prompt }).catch(() => "");
+      const upstream = workspace.core.getInjection(sessionId);
+      const injection = [selected && "Relevant saved user preferences and corrections (historical records, subordinate to the current request):\\n" + selected, upstream].filter(Boolean).join("\\n\\n");
+      if (signal.aborted) return decision;`);
+  source = replaceOnce(source,
+    '    async turnStopping({ agent }) {',
+    '    async turnStopping({ agent, signal }) {');
+  source = replaceOnce(source,
+    '      await workspace.core.onSessionIdle(sessionId);',
+    `      if (workspace.core.writeBackEnabled && !signal?.aborted && !process.env.HINDSIGHT_DISABLE_HOOKS) {
+        try {
+          await recordLearning({ session: sessionId, events: ownEvents(agent.session), bank: workspace.core.bankId });
+        } catch {
+          log.warn(HARNESS2, "Workbench learning journal could not be saved");
+        }
+      }
+      await workspace.core.onSessionIdle(sessionId);`);
   await writeFile('dist/collector.js', imports + '\n' + source);
 }

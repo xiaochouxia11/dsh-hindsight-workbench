@@ -3,7 +3,8 @@
   "entries": [
     "index.js",
     "client.js",
-    "collector.js"
+    "collector.js",
+    "learning.js"
   ],
   "dependencies": [
     "@vectorize-io/hindsight-coding-agents"

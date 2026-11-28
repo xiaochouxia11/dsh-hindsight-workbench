@@ -26,7 +26,7 @@ try {
   const installed = join(sandbox, 'node_modules', ...manifest.name.split('/'));
   const installedManifest = JSON.parse(await readFile(join(installed, 'package.json'), 'utf8'));
   assert.equal(installedManifest.version, manifest.version);
-  assert.deepEqual(await readdir(join(installed, 'dist')).then(files => files.sort()), ['build.json','client.js','collector.js','index.js']);
+  assert.deepEqual(await readdir(join(installed, 'dist')).then(files => files.sort()), ['build.json','client.js','collector.js','index.js','learning.js']);
   const guide = new TextDecoder('utf-8',{fatal:true}).decode(await readFile(join(installed, 'docs', 'INSTALL.zh-CN.md')));
   assert.match(guide, /首次安装/);
   const patch = new TextDecoder('utf-8',{fatal:true}).decode(await readFile(join(installed, 'cordis.patch.yml')));

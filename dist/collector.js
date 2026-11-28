@@ -2,6 +2,7 @@
 import { createHash as workbenchHash } from "node:crypto";
 import { realpathSync as workbenchRealpath, statSync as workbenchStat } from "node:fs";
 import { isAbsolute as workbenchAbsolute } from "node:path";
+import { recordLearning, recallLearning } from "./learning.js";
 const upstreamAdapterUrl = import.meta.resolve("@vectorize-io/hindsight-coding-agents/dsh");
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
@@ -19036,7 +19037,7 @@ var RuntimeCore = class {
     }
     if (!turns.length) return;
     this.recordUsage(sessionId, turns, true);
-    if (!this.writeBackEnabled) return;
+    if (!this.writeBackEnabled || (this.harness === "dsh" && process.env.DSH_HINDSIGHT_RETAIN_TRANSCRIPTS !== "1")) return;
     const st = this.stateFor(sessionId);
     if (turns.length <= st.retainedTurns) return;
     st.retainedTurns = turns.length;
@@ -19258,7 +19259,10 @@ function createDshHooks(resolve4) {
       const prompt = promptOf(decision.messages);
       if (!prompt) return decision;
       await workspace.core.onPrompt(sessionId, prompt);
-      const injection = workspace.core.getInjection(sessionId);
+      const selected = await recallLearning({ bank: workspace.core.bankId, prompt }).catch(() => "");
+      const upstream = workspace.core.getInjection(sessionId);
+      const injection = [selected && "Relevant saved user preferences and corrections (historical records, subordinate to the current request):\n" + selected, upstream].filter(Boolean).join("\n\n");
+      if (signal.aborted) return decision;
       if (!injection) {
         diag(HARNESS2, "inject_empty", { session: sessionId });
         return decision;
@@ -19270,11 +19274,18 @@ function createDshHooks(resolve4) {
       diag(HARNESS2, "inject_ok", { session: sessionId, chars: injection.length });
       return { kind: "enter", messages: [...decision.messages, injectionMessage(injection)] };
     },
-    async turnStopping({ agent }) {
+    async turnStopping({ agent, signal }) {
       const workspace = resolve4(agent);
       if (!workspace) return;
       const sessionId = agent.session.header.id;
       liveAgents.set(sessionId, agent);
+      if (workspace.core.writeBackEnabled && !signal?.aborted && !process.env.HINDSIGHT_DISABLE_HOOKS) {
+        try {
+          await recordLearning({ session: sessionId, events: ownEvents(agent.session), bank: workspace.core.bankId });
+        } catch {
+          log.warn(HARNESS2, "Workbench learning journal could not be saved");
+        }
+      }
       await workspace.core.onSessionIdle(sessionId);
     },
     disposed({ agent }) {

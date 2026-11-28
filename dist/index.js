@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
+import { updateLearning, getLearning, listLearningBanks, setLearningGlobalBank } from './learning.js';
 
 export const name = 'dsh-hindsight-workbench';
 export const inject = ['connection'];
@@ -372,6 +373,11 @@ export function createKnowledgeHandler(transport = readLocal, config = {}) {
 }
 
 export function apply(ctx, config = {}) {
+  setLearningGlobalBank(connectionOptions(config).globalBank);
+  ctx.effect(() => ctx.connection.fetch.register({
+    path: LEARNING_ROUTE, methods: ['GET', 'POST'], requestBody: 'buffered',
+    fetch: createLearningHandler(config),
+  }));
   ctx.effect(() => ctx.connection.fetch.register({ path: ROUTE, methods: ['GET'], requestBody:'buffered', fetch:createHandler(readLocal,config,()=>upstreamInventory(ctx.get('pluginManager')),()=>readSkills(config)) }));
   ctx.effect(() => ctx.connection.fetch.register({ path: KNOWLEDGE_ROUTE, methods: ['GET', 'POST'], requestBody:'buffered', fetch:createKnowledgeHandler(readLocal, config) }));
   const home = process.env.DSH_HOME || path.join(homedir(), '.dsh');
@@ -387,6 +393,40 @@ export function apply(ctx, config = {}) {
     path: RECALL_ROUTE, methods: ['POST'], requestBody: 'buffered',
     fetch: createRecallHandler(readLocal, config),
   }));
+}
+
+export const LEARNING_ROUTE = ROUTE + '/learning';
+
+export function createLearningHandler(config = {}, directory) {
+  const options = connectionOptions(config);
+  const isProject = bank => bank !== options.globalBank && bankAllowed(options.bank, bank);
+  return async request => {
+    try {
+      const params = new URL(request.url).searchParams;
+      const scope = params.get('scope');
+      if (request.method === 'GET' && scope === 'banks') {
+        return json({ data: { projectBank: options.bank, banks: (await listLearningBanks(directory)).filter(isProject) } });
+      }
+      const bank = scope === 'global' ? options.globalBank : params.get('bank');
+      if (scope !== 'global' && (scope !== 'project' || !isProject(bank))) {
+        return json({ error: '请选择项目或全局记忆库。' }, 400);
+      }
+      if (request.method === 'GET') return json({ data: await getLearning(bank, directory) });
+      if (request.method !== 'POST') return json({ error: '不支持的操作。' }, 405);
+      if (!knowledgePostAllowed(request)) return json({ error: '请从工作台管理自动记忆。' }, 403);
+      const body = await request.text();
+      let input;
+      try { if (body.length <= 300) input = JSON.parse(body); } catch { /* Invalid input. */ }
+      if (typeof input?.id !== 'string' || !/^[a-f0-9]{24}$/.test(input.id)
+        || !['archive', 'restore', 'adopt'].includes(input.action)) {
+        return json({ error: '无效的候选记录。' }, 400);
+      }
+      if (!await updateLearning(bank, input.id, input.action, directory)) return json({ error: '找不到该记录。' }, 404);
+      return json({ data: await getLearning(bank, directory) });
+    } catch {
+      return json({ error: '无法访问本机进化日志。' }, 503);
+    }
+  };
 }
 
 export const EVOLUTION_ROUTE = ROUTE + '/evolution';
@@ -470,9 +510,11 @@ function cleanEvolutionDraft(draft) {
   if (!bounded(evidence?.id, 256) || !evidence.id || !bounded(evidence?.scopeLabel, 64)
     || !bounded(evidence?.text, 12000) || !bounded(draft.name, 64)
     || !bounded(draft.description, 500) || !bounded(draft.body, 64000)
-    || typeof draft.includeEvidence !== 'boolean') return null;
+    || typeof draft.includeEvidence !== 'boolean'
+    || (evidence.learningBank !== undefined && !validBank(evidence.learningBank))) return null;
   return {
-    evidence: { id: evidence.id, scopeLabel: evidence.scopeLabel, text: evidence.text },
+    evidence: { id: evidence.id, scopeLabel: evidence.scopeLabel, text: evidence.text,
+      ...(evidence.learningBank ? { learningBank: evidence.learningBank } : {}) },
     name: draft.name, description: draft.description, body: draft.body, includeEvidence: draft.includeEvidence,
   };
 }

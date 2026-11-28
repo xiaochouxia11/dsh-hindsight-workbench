@@ -22,6 +22,7 @@ test('the packaged collector recalls only the new session’s bound project', as
   });
   for (const key of Object.keys(process.env)) if (key.startsWith('HINDSIGHT_')) delete process.env[key];
   Object.assign(process.env, {
+    DSH_HOME: sandbox, DSH_HINDSIGHT_RETAIN_TRANSCRIPTS: '1',
     HINDSIGHT_CONFIG: path.join(sandbox, 'collector.json'),
     HINDSIGHT_LOG_FILE: path.join(sandbox, 'collector.log'),
     HINDSIGHT_DIAG_FILE: path.join(sandbox, 'diagnostics.jsonl'),
@@ -104,6 +105,27 @@ test('the packaged collector recalls only the new session’s bound project', as
   await recall('relative/path');
   await recall(path.join(sandbox, 'missing'));
   assert.equal(calls.length, before);
+
+  await t.test('default hook remembers only selected rules and recalls them in a new session', async () => {
+    delete process.env.DSH_HINDSIGHT_RETAIN_TRANSCRIPTS;
+    const before = calls.filter(call => call.kind === 'retain').length;
+    const done = () => ({ type: 'assistant/message', data: { message: { content: [{ type: 'text', text: 'Ack' }] } } });
+    for (const prompt of ['以后验收格式：markdown 清单', '请这份报告使用 private-note']) {
+      await hooks.get('agent/turn-stopping')({ agent:session(first, [
+        { type: 'user/message', data: message(prompt) }, done(),
+      ]) });
+    }
+    const replay = async (cwd, prompt) => {
+      const value = await hooks.get('agent/pre-step')({ agent: session(cwd), signal: new AbortController().signal },
+        async () => ({ kind: 'enter', messages: [message(prompt)] }));
+      return value.messages.filter(item => item.source.kind !== 'user').flatMap(item => item.content.map(block => block.text)).join('\n');
+    };
+    assert.match(await replay(first, '检查验收格式'), /markdown 清单/);
+    assert.doesNotMatch(await replay(second, '检查验收格式'), /markdown 清单/);
+    assert.doesNotMatch(await replay(first, '查找 private-note'), /private-note/);
+    assert.equal(calls.filter(call => call.kind === 'retain').length, before);
+    process.env.DSH_HINDSIGHT_RETAIN_TRANSCRIPTS = '1';
+  });
 
   await t.test('a linked Git worktree shares its main checkout’s library', async linked => {
     try { git(sandbox, '--version'); }
