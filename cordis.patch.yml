@@ -1,1 +1,1 @@
-[{"insert":[{"id":"hindsight","name":"@vectorize-io/hindsight-coding-agents/dsh"},{"id":"hindsight-workbench-host","name":"dsh-hindsight-workbench"}]}]
+[{"insert":[{"id":"hindsight","name":"dsh-hindsight-workbench/collector"},{"id":"hindsight-workbench-host","name":"dsh-hindsight-workbench"}]}]

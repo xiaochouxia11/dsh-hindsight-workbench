@@ -2,8 +2,11 @@
   "format": 1,
   "entries": [
     "index.js",
-    "client.js"
+    "client.js",
+    "collector.js"
   ],
-  "dependencies": [],
+  "dependencies": [
+    "@vectorize-io/hindsight-coding-agents"
+  ],
   "clientFormat": "DSH lazy factory"
 }

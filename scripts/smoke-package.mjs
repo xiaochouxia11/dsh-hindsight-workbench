@@ -26,7 +26,7 @@ try {
   const installed = join(sandbox, 'node_modules', ...manifest.name.split('/'));
   const installedManifest = JSON.parse(await readFile(join(installed, 'package.json'), 'utf8'));
   assert.equal(installedManifest.version, manifest.version);
-  assert.deepEqual(await readdir(join(installed, 'dist')).then(files => files.sort()), ['build.json','client.js','index.js']);
+  assert.deepEqual(await readdir(join(installed, 'dist')).then(files => files.sort()), ['build.json','client.js','collector.js','index.js']);
   const guide = new TextDecoder('utf-8',{fatal:true}).decode(await readFile(join(installed, 'docs', 'INSTALL.zh-CN.md')));
   assert.match(guide, /首次安装/);
   const patch = new TextDecoder('utf-8',{fatal:true}).decode(await readFile(join(installed, 'cordis.patch.yml')));
@@ -43,6 +43,8 @@ try {
     const name = ${JSON.stringify(manifest.name)};
     const api = await import(name);
     assert.equal(typeof api.apply, 'function');
+    const collector = await import(name + '/collector');
+    assert.equal(typeof collector.apply, 'function');
     assert.ok(import.meta.resolve(name + '/client').endsWith('/dist/client.js'));
     const guide = new URL('../docs/ACCEPTANCE.zh-CN.md', import.meta.resolve(name));
     const {readFile} = await import('node:fs/promises');

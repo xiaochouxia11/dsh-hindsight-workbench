@@ -250,8 +250,9 @@ export async function upstreamInventory(manager) {
   if (!manager) return {available:false,error:'官方插件管理服务不可用，未检查上游挂载。'};
   const pkg='@vectorize-io/hindsight-coding-agents';
   const [plugins,bundles]=await Promise.all([manager.listPlugins(),manager.listBundles()]);
-  const entries=plugins.filter(p=>p.moduleName===pkg+'/dsh').map(p=>({enabled:p.enabled===true,phase:['pending','loading','active','failed','unloading'].includes(p.fiberPhase)?p.fiberPhase:null}));
-  const bundle=bundles.find(b=>b.name===pkg);
+  const collector = name + '/collector';
+  const entries=plugins.filter(p=>p.moduleName===pkg+'/dsh'||p.moduleName===collector).map(p=>({enabled:p.enabled===true,phase:['pending','loading','active','failed','unloading'].includes(p.fiberPhase)?p.fiberPhase:null}));
+  const bundle=bundles.find(b=>b.name===name) || bundles.find(b=>b.name===pkg);
   return {available:true,installed:bundle?.installed===true,version:/^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/.test(bundle?.version||'')?bundle.version:null,entries,duplicate:entries.length>1};
 }
 

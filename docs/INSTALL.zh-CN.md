@@ -5,7 +5,7 @@
 1. 打开本机 DeepSeek Harness 的「插件」页面。兼容版本由插件的 `engines.dsh` 声明，安装时由 Harness 校验。
 2. 在已配置的市场中搜索「Hindsight 记忆工作台」或 `dsh-hindsight-workbench`。能否搜到取决于市场是否已收录和刷新。也可从仓库的 GitHub Releases 下载对应版本的 `.tgz`，再从 Harness 插件管理器安装该包。两个入口都应核对安装来源和版本。
 3. 安装后按 Harness 提示启用或重新加载。从左侧栏打开「Hindsight 记忆工作台」，也可用 `Alt+Shift+H`。打开「检查」，依次核对 Hindsight 服务、记忆库和采集器。工作台默认使用简体中文。
-4. 已安装工作台时，插件管理器会解析随包声明的上游 Hindsight 采集器依赖。已有采集插件的电脑应先核对当前挂载，确认同一回合的写入职责归属。
+4. 插件管理器会解析随包声明的 Hindsight 依赖并挂载工作台采集器。已有独立采集器的电脑应在「检查」中核对挂载，保留一个承担 Hindsight 采集职责的实例。
 5. 没有 Hindsight 后端时，可先使用「长期记忆」中的本机全局笔记。Hindsight 记忆、语义召回和 AI 知识库另需后端。按 [Hindsight 官方部署指南](https://hindsight.vectorize.io/developer/installation) 准备运行环境、存储和嵌入环境。已有健康后端可以复用。安装包和向导提供检查与步骤，依赖下载和启动需在目标电脑执行。
 6. 创建 DSH Skill 需要已启用的 `@michengai/dsh-skills-manager`。在「技能」页点击「添加 Skill」会检查该插件。打开「AI 知识库」会检查 Hindsight 1.3.0 的知识库接口。
 
@@ -17,7 +17,9 @@
 
 ### 同名项目的自动采集隔离
 
-随包的上游采集器默认按项目目录名生成记忆库 ID。不同绝对路径下的同名项目可能因此共用一个库。要为它们分库，请在 Hindsight 的 `coding-agent.json` 中合并 `mapPathToBank`。配置文件通常位于 `~/.hindsight/coding-agent.json`，也可由 `HINDSIGHT_CONFIG` 指定。以下使用示例路径，实际值请按新电脑填写。
+工作台随包采集器基于会话启动目录的真实路径生成 `coding-agent::workspace-…` 库 ID。同名目录各自使用独立的库，Git 子目录和关联工作树默认使用主工作树对应的库。会话目录不可用时跳过该会话的自动召回与采集。
+
+旧版按目录名生成的库仍可从工作台中选中并浏览。升级不自动合并旧记录。需要继续使用旧库或固定库 ID 时，在 Hindsight 的 `coding-agent.json` 中合并 `mapPathToBank`。配置文件通常位于 `~/.hindsight/coding-agent.json`，也可由 `HINDSIGHT_CONFIG` 指定。
 
 ```json
 {
@@ -28,7 +30,7 @@
 }
 ```
 
-保留文件中的其他配置和已有映射。完整退出并重开 Harness，以刷新采集器缓存。进入各项目的新会话后，用不同的合成标记核对实际落库和召回，再在工作台选择对应的库。旧库由现有存储保留，路径映射只影响后续路由。
+保留文件中的其他配置和已有映射。完整退出并重开 Harness，以刷新采集器缓存。用不同的合成标记核对实际落库和召回，再在工作台选择对应的库。显式路径映射、静态库和自定义模板仍可控制路由，多条映射指向一个库时会共享记忆。
 
 ## 3. 日常使用
 

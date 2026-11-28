@@ -43,7 +43,7 @@ test('client registers reversible sidebar and main page without touching unrelat
 });
 test('manifest and insert-only patch export built files and unique IDs',async()=>{
   const pkg=JSON.parse(await readFile('package.json'));const patch=JSON.parse(await readFile('cordis.patch.yml'));
-  assert.equal(pkg.dsh.bundle.patch,'./cordis.patch.yml');for(const op of patch){assert.deepEqual(Object.keys(op),['insert']);for(const entry of op.insert){assert.ok(entry.id.length>0);assert.ok(entry.name===pkg.name||entry.name==='@vectorize-io/hindsight-coding-agents/dsh');}}
+  assert.equal(pkg.dsh.bundle.patch,'./cordis.patch.yml');for(const op of patch){assert.deepEqual(Object.keys(op),['insert']);for(const entry of op.insert){assert.ok(entry.id.length>0);assert.ok(entry.name===pkg.name||entry.name===pkg.name+'/collector');}}
   assert.ok(patch.some(op=>op.insert.some(entry=>entry.name===pkg.name)));
-  for(const key of ['.','./client','./icon'])assert.ok((await readFile(pkg.exports[key])).length);
+  for(const key of ['.','./collector','./client','./icon'])assert.ok((await readFile(pkg.exports[key])).length);
 });

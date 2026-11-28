@@ -10,6 +10,7 @@ DeepSeek Harness（DSH）的简体中文记忆工作台：在 DSH 左侧栏打�
 - **总览**：连接状态、事实数、关联数、文档数、待处理操作。
 - **记忆列表**：项目库 / 全局库 / 联合搜索三种范围。关键词搜索原文与上下文，也可按含义召回，用来源标记打开实际记录。联合查询按来源分组。
 - **长期记忆**：手动保存偏好、项目事实与经验，支持编辑、搜索、归档和恢复。本机笔记按所选项目库或全局库保存，之后打开其他会话也可查找。
+- **会话项目隔离**：随包采集器默认使用真实的项目路径生成库 ID，同名项目使用不同库。可以显式映射到已有库。
 - **记忆详情**：原文、时间、类型、实体、标签、元数据、已有关系图。观察可按需查看旧版本，其他有来源文档的记忆可查看写入、修正和整理历史。
 - **知识库**：知识页树与正文阅读，支持页内选择与关键词命中。
 - **AI 知识库**：Hindsight 1.3.0 提供原生知识库接口。可新建工作台知识库、导入文本或 Markdown、检索并查看原文。导入和检索需要 Hindsight 配置的嵌入运行环境。
@@ -49,7 +50,7 @@ DeepSeek Harness（DSH）的简体中文记忆工作台：在 DSH 左侧栏打�
 
 ## 构建与测试
 
-需要 Node.js 20+：
+需要 Node.js 20+。先使用 `npm install --ignore-scripts` 安装已固定版本的构建依赖。
 
 ```sh
 npm run build   # 复制 src → dist
@@ -62,3 +63,4 @@ npm run check:public-pack   # 公开包内容预检（需 npm）
 ## 许可
 
 MIT，见 [LICENSE](LICENSE)。
+随包采集器源自 [Hindsight DSH 集成](https://github.com/vectorize-io/hindsight/tree/0a7ed29d705d967fe1f759c542842fa3709c3d43/hindsight-integrations/coding-agents)，见 [HINDSIGHT-LICENSE](HINDSIGHT-LICENSE)。

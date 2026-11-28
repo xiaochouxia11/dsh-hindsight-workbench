@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 
 const expected = new Set([
-  'LICENSE', 'README.md', 'cordis.patch.yml', 'dist/build.json', 'dist/client.js', 'dist/index.js',
+  'LICENSE', 'HINDSIGHT-LICENSE', 'README.md', 'cordis.patch.yml', 'dist/build.json', 'dist/client.js', 'dist/collector.js', 'dist/index.js',
   'docs/ACCEPTANCE.zh-CN.md', 'docs/INSTALL.zh-CN.md', 'icon.svg', 'locale/en.json',
   'locale/zh.json', 'package.json',
 ]);
