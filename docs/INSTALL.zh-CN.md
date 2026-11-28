@@ -2,11 +2,20 @@
 
 ## 1. 在新电脑上首次安装
 
+桌面用户可直接从插件管理器安装，依赖由 Harness 管理。使用官方命令行的用户先确认 `node --version` 和 `pnpm --version` 可执行，再运行下列命令。对已验证的 Harness CLI 0.2.2-rc.5，Node.js 需达到 24.9.0，测试使用 Node 24 和 pnpm 11.28.5。
+
+```sh
+dsh plugin --profile web add github:xiaochouxia11/dsh-hindsight-workbench#v0.3.0
+dsh --profile web
+```
+
+官方 CLI 安装与宿主挂载由 [跨平台验收](https://github.com/xiaochouxia11/dsh-hindsight-workbench/actions/workflows/clean-harness.yml) 检查。每个平台的结果以当次运行记录为准。此验收包含本机笔记保存和重启恢复，AI 知识库和 Skill 创建仍需在目标电脑配置相应组件。
+
 1. 打开本机 DeepSeek Harness 的「插件」页面。兼容版本由插件的 `engines.dsh` 声明，安装时由 Harness 校验。
 2. 在已配置的市场中搜索「Hindsight 记忆工作台」或 `dsh-hindsight-workbench`。能否搜到取决于市场是否已收录和刷新。也可从仓库的 GitHub Releases 下载对应版本的 `.tgz`，再从 Harness 插件管理器安装该包。两个入口都应核对安装来源和版本。
 3. 安装后按 Harness 提示启用或重新加载。从左侧栏打开「Hindsight 记忆工作台」，也可用 `Alt+Shift+H`。打开「检查」，依次核对 Hindsight 服务、记忆库和采集器。工作台默认使用简体中文。
 4. 插件管理器会解析随包声明的 Hindsight 依赖并挂载工作台采集器。已有独立采集器的电脑应在「检查」中核对挂载，保留一个承担 Hindsight 采集职责的实例。
-5. 没有 Hindsight 后端时，可先使用「长期记忆」中的本机全局笔记。Hindsight 记忆、语义召回和 AI 知识库另需后端。按 [Hindsight 官方部署指南](https://hindsight.vectorize.io/developer/installation) 准备运行环境、存储和嵌入环境。已有健康后端可以复用。安装包和向导提供检查与步骤，依赖下载和启动需在目标电脑执行。
+5. 没有 Hindsight 后端时，可先使用「长期记忆」和「进化」中的本机功能。Hindsight 记忆、语义召回和 AI 知识库另需后端。按 [Hindsight 官方部署指南](https://hindsight.vectorize.io/developer/installation) 准备运行环境、存储和嵌入环境。已有健康后端可以复用。安装包和向导提供检查与步骤，依赖下载和启动需在目标电脑执行。
 6. 创建 DSH Skill 需要已启用的 `@michengai/dsh-skills-manager`。在「技能」页点击「添加 Skill」会检查该插件。打开「AI 知识库」会检查 Hindsight 1.3.0 的知识库接口。
 
 ## 2. 配置并核对记忆库
@@ -45,5 +54,6 @@
 
 - **侧栏没有工作台**。检查插件是否启用、实际版本及生效提示，必要时先等运行中的任务结束，再正常退出并重开 Harness。
 - **后端离线或 404**。分别核对服务地址、当前库是否存在，以及 Hindsight 版本是否提供所选接口。
-- **换机后没有旧记忆**。安装包只包含程序。本机长期笔记和草稿位于 `DSH_HOME/storages/dsh-hindsight-workbench`，Hindsight 数据需用其独立备份与恢复流程。同步、账户授权和安装状态按目标电脑分别验证。
+- **换机后没有旧记忆**。安装包只包含程序。请先关闭两台电脑上的 Harness，再把旧电脑 `DSH_HOME/storages/dsh-hindsight-workbench` 中的本机笔记、进化草稿和学习日志备份到你控制的位置。仅在新电脑对应目录为空时复制这份备份，避免覆盖已使用的数据。Hindsight 数据请另用官方备份与恢复方法。记忆文件含个人或项目内容，请仅通过你控制的私有位置传输。
+- **换机后同一个项目显示新库**。默认项目库由目录的真实路径计算，两台电脑的路径不同会生成不同库。要继续使用迁移过的库，查询旧电脑工作台中的库 ID，然后在新电脑按上面的 `mapPathToBank` 示例把新项目目录绑定到这一 ID。
 - **回退插件**。在 Harness 插件管理器中选择已验证的安装包。个别组件卸载后，本机笔记、草稿和 Hindsight 数据由各自的存储管理。
